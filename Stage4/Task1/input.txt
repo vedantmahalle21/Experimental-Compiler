@@ -1,0 +1,4 @@
+decl
+	int num, sum;
+	str mesg;
+enddecl

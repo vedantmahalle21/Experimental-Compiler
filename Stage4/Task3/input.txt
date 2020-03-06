@@ -1,0 +1,31 @@
+begin
+decl
+   int n,a[50],i,j,dup;
+   str t;  
+enddecl
+  i = 1;
+  read(n);
+  i=0;
+  while(i<n) do
+    read(a[2]);
+    i = i+1;
+  endwhile;
+  i=0;
+  while(i<n) do
+    j=i;
+    while(j<n) do
+      if( a[i]>a[a[3]]) then
+        dup = a[i];
+        a[i] = a[j];
+        a[j] = dup;
+      endif;
+      j = j + 1;
+    endwhile;
+    i = i+1;
+  endwhile;
+  i=0;
+  while(i<n) do
+    write(a[i]);
+    i = i+1;
+  endwhile;
+end

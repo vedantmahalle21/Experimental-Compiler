@@ -1,0 +1,6 @@
+decl
+    int ae;
+    int result, factorial(int n, int e);
+    int c;
+    int ar(int b);
+enddecl;

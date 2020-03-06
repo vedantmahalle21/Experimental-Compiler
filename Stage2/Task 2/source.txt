@@ -1,0 +1,7 @@
+begin
+	c = d;
+	a = a + 1;
+	a = 2 + b;
+	write(d+e);
+	read(c);
+end;
