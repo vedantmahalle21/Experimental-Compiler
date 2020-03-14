@@ -91,7 +91,8 @@ extern int yydebug;
     TYPE = 301,
     ENDTYPE = 302,
     ID5 = 303,
-    NUL = 304
+    NUL = 304,
+    INITIALIZE = 305
   };
 #endif
 /* Tokens.  */
@@ -142,6 +143,7 @@ extern int yydebug;
 #define ENDTYPE 302
 #define ID5 303
 #define NUL 304
+#define INITIALIZE 305
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -158,7 +160,7 @@ union YYSTYPE
     struct TypeTable *n5;
     struct FieldList *n6;
 
-#line 162 "y.tab.h" /* yacc.c:1909  */
+#line 164 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

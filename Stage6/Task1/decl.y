@@ -23,10 +23,10 @@
 %type <n5> TypeDefBlock TypeDefList TypeDef ID4
 %type <n4> ArgList Arg
 %type <n3> LDeclBlock LDeclList LDecl ID3 IDList AID3
-%type <n2> Program FDefBlock MainBlock ID FDefList Slist Stmt Retstmt InputStmt OutputStmt AsgStmt Ifstmt Whilestmt BreakStmt ContinueStmt AllocStmt FreeStmt expr var FIELD string MAIN E Type NUL
+%type <n2> Program FDefBlock MainBlock ID FDefList Slist Stmt Retstmt InputStmt OutputStmt AsgStmt Ifstmt Whilestmt BreakStmt ContinueStmt AllocStmt FreeStmt expr var FIELD string MAIN E Type NUL InitializeStmt
 %type <n1> ParamList Param Plist PARAM
 %type <no> GDeclBlock GDeclList GDecl GidList Gid ID1
-%token ID DECL ENDDECL INT STR PARAM RETURN MAIN WRITE READ BREAK CONTINUE ALLOC FREE LT GT EQT LE GE NE AND OR MOD MUL DIV PLUS MINUS DO ELSE IF THEN WHILE STRING BEG END EQ ENDIF ENDWHILE ID1 ID3 E AID3 ID4 TYPE ENDTYPE ID5 NUL
+%token ID DECL ENDDECL INT STR PARAM RETURN MAIN WRITE READ BREAK CONTINUE ALLOC FREE LT GT EQT LE GE NE AND OR MOD MUL DIV PLUS MINUS DO ELSE IF THEN WHILE STRING BEG END EQ ENDIF ENDWHILE ID1 ID3 E AID3 ID4 TYPE ENDTYPE ID5 NUL INITIALIZE 
 %left EQT AND OR 
 %left GT LT EQ NE GE LE
 %left PLUS MINUS
@@ -44,56 +44,54 @@ Program : GDeclBlock FDefBlock MainBlock                     {$$ = $3;}
         | TypeDefBlock FDefBlock MainBlock                   {$$ = $3;}
         ;
 
-TypeDefBlock  : TYPE TypeDefList ENDTYPE                {$$ = $2;printf("JHY\n");}                               
+TypeDefBlock  : TYPE TypeDefList ENDTYPE                {$$ = $2;}                               
               ;
 
-TypeDefList   : TypeDefList TypeDef     {$$ =$1;printf("LOI\n");}
-              | TypeDef                 {$$ = $1;printf("JJU\n");}
+TypeDefList   : TypeDefList TypeDef     {$$ =$1;}
+              | TypeDef                 {$$ = $1;}
               ;
 
-TypeDef       : ID4 '{' FieldDeclList '}'   {$$ = $1; $1->fields = $3;makeFNull();$1->size = sz;sz =0;printf("AAE\n");}
+TypeDef       : ID4 '{' FieldDeclList '}'   {$$ = $1; $1->fields = $3;makeFNull();$1->size = sz;sz =0;DisplayT($1);}
               ;
 
-FieldDeclList : FieldDeclList FieldDecl         {$$ = $2;printf("UYU\n");}
-              | FieldDecl                       {$$ = $1;printf("OOI\n");}
+FieldDeclList : FieldDeclList FieldDecl         {$$ = $1;}
+              | FieldDecl                       {$$ = $1;}
               ;
 
-FieldDecl    : INT ID5    {printf("QWWW\n");$$ = $2;struct TypeTable *temp = TLookup("int");$2->typet = temp;printf("rt::%s\n", $2->typet->name);printf("rta::%s\n", $2->name);}
-             | STR ID5   {printf("AAWS\n");$$ = $2;struct TypeTable *temp = TLookup("str");$2->typet = temp;}
-             | ID4 ID5     {printf("AOUT\n");$$ = $2;$2->typet = $1;}
+FieldDecl    : Type ID5 {$$ =$2;}
+             | ID4 ID5 {$$ =$2;}
              ;
 
 
-GDeclBlock  : DECL GDeclList ENDDECL    {   $$ =$2;Display($2);printf("SSD\n");
-                                        }
+GDeclBlock  : DECL GDeclList ENDDECL    {   $$ =$2;Display($2);}
             | DECL ENDDECL                                {}
             ;
 
-GDeclList   : GDeclList GDecl {$$ =$1;printf("nnu\n");}
-            | GDecl           {$$ = $1;printf("RFB\n");}
+GDeclList   : GDeclList GDecl {$$ =$1;}
+            | GDecl           {$$ = $1;}
             ;
-GDecl : Type GidList    {$$ = $2;printf("AQW1\n");}
-      | ID4 GidList     {$$ = $2;printf("AQ\n");$2->typet = $1;printf("AQWw\n");}
+GDecl : Type GidList    {$$ = $2;}
+      | ID4 GidList     {$$ = $2;}
       ;
 
-GidList : GidList ',' Gid       {$$ = $1;printf("vfa\n");}
-        | Gid                   {$$ = $1;printf("11..a\n");}
+GidList : GidList ',' Gid       {$$ = $1;}
+        | Gid                   {$$ = $1;}
         ;
 
-Gid : ID1                           {$$ =$1;printf("lkj\n");}       
-    | ID1 '(' ParamList ')'         {$$ = $1;printf("lkjj\n"); $1->paramlist = $3;adrs--;}
+Gid : ID1                           {$$ =$1;}       
+    | ID1 '(' ParamList ')'         {$$ = $1; $1->paramlist = $3;adrs--;}
     ; 
 
 ParamList : ParamList Plist
           | Plist
           ;
 
-Plist : Plist ',' Param     {$$ = $1;printf("AVD\n");}
-      | Param                   {$$ = $1;printf("JUH\n");}
+Plist : Plist ',' Param     {$$ = $1;}
+      | Param                   {$$ = $1;}
       ;
 
-Param : Type PARAM         {$$ = $2;printf("AKU\n");}
-      | ID4 PARAM          {printf("QDF\n");$$ = $2;$2->typet = $1;}
+Param : Type PARAM         {$$ = $2;}
+      | ID4 PARAM          {$$ = $2;$2->typet = $1;}
       ;
 
 Type : INT  {} 
@@ -109,6 +107,7 @@ LDeclList : LDeclList LDecl {$$ =$2;}
          ;
 
 LDecl : Type IDList    {$$ = $2;}
+      | ID4 IDList    {$$ = $2;}
       ;
 
 IDList : IDList ',' ID3  {$$ = $3;}   
@@ -122,7 +121,7 @@ FDefBlock : FDefBlock FDefList           {$$ =$1;}
           | FDefList                    {$$ =$1;}
           ;
 
-FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {printf("aajh\n");
+FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {
                                                                 $$ = $2;
                                                                 $$->Lentry = $7;
                                                                 $$->left = $9;
@@ -132,7 +131,7 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
                                                                 DisplayL($2->Lentry);
                                                                 makeLNull();
                                                                 }                                
-          | Type ID '(' ParamList ')' '{' BEG Slist Retstmt END '}'  {printf("aajlh\n");
+          | Type ID '(' ParamList ')' '{' BEG Slist Retstmt END '}'  {
                                                                 $$ = $2;
                                                                 $$->left = $8;
                                                                 $$->right  = $9;
@@ -141,8 +140,9 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
                                                                 //DisplayL($2->Lentry);
                                                                 makeLNull();
                                                                 }
-         | ID4 ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {printf("aajh\n");
+         | ID4 ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {
                                                                 $$ = $2;
+                                                                $$->typet = $1;
                                                                 $$->Lentry = $7;
                                                                 $$->left = $9;
                                                                 $$->right  = $10;
@@ -151,8 +151,9 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
                                                                 DisplayL($2->Lentry);
                                                                 makeLNull();
                                                                 }                                
-          | ID4 ID '(' ParamList ')' '{' BEG Slist Retstmt END '}'  {printf("aajlh\n");
+          | ID4 ID '(' ParamList ')' '{' BEG Slist Retstmt END '}'  {
                                                                 $$ = $2;
+                                                                $$->typet = $1;
                                                                 $$->left = $8;
                                                                 $$->right  = $9;
                                                                 $$->Gentry->flabel = fl;
@@ -178,7 +179,7 @@ Retstmt   : RETURN var                   {        if($2->nodetype != rettype){
                                             $$ = makeOperationNode("return", $2, 14);}
           ;
 
-Stmt: InputStmt | OutputStmt | AsgStmt | Ifstmt | Whilestmt | BreakStmt | ContinueStmt | AllocStmt | FreeStmt ;
+Stmt: InputStmt | OutputStmt | AsgStmt | Ifstmt | Whilestmt | BreakStmt | ContinueStmt | AllocStmt | FreeStmt | InitializeStmt  ;
 
 Ifstmt : IF '(' expr ')' THEN Slist ELSE Slist ENDIF   {   $$ = makeConditionalNode($3, $6, $8, 6);}   
        | IF '(' expr ')' THEN Slist ENDIF              {   $$ = makeConditionalNode($3, $6, $6, 7);}
@@ -199,7 +200,8 @@ OutputStmt: WRITE '(' expr ')'              { $$ = makeOperationNode("write", $3
 AsgStmt: var EQT expr                       { $$ = makeOperatorNode("=", $1, $3, 3);}
        | var EQT string                     { $$ = makeOperatorNode("=", $1, $3, 3);}
        | var EQT var                        { $$ = makeOperatorNode("=", $1, $3, 3);}
-       | FIELD EQT var                  {$$ = makeOperatorNode("=", $1, $3, 3);printf("AssQ\n");} 
+       | FIELD EQT var                  {$$ = makeOperatorNode("=", $1, $3, 3);}
+       | FIELD EQT expr                 {$$ = makeOperatorNode("=", $1, $3, 3);}
        ;
 
 BreakStmt:  BREAK                           {$$ = makeUnconditionalNode("break", 9);}
@@ -208,19 +210,21 @@ BreakStmt:  BREAK                           {$$ = makeUnconditionalNode("break",
 ContinueStmt:  CONTINUE                           {$$ = makeUnconditionalNode("continue", 10);}
          ;
 
-AllocStmt: var EQT ALLOC'(' ')'              {$$ = makeOperationNode("alloc", $1, 18);printf("NBV\n");}
-         | FIELD EQT ALLOC'(' ')'            {$$ = makeOperationNode("alloc", $1, 18);printf("NBD\n");}
+AllocStmt: var EQT ALLOC'(' ')'              {$$ = makeOperationNode("alloc", $1, 18);}
+         | FIELD EQT ALLOC'(' ')'            {$$ = makeOperationNode("alloc", $1, 18);}
          ;
 
-FreeStmt: FREE '(' ID ')'                   {}
-        | FREE '(' FIELD ')'                {}
+FreeStmt: FREE '(' ID ')'                   {$$ = makeOperationNode("free", $3, 22);}
+        | FREE '(' FIELD ')'                {$$ = makeOperationNode("free", $3, 22);}
         ;
 
-FIELD   : ID '.' ID                       {printf("AAqw\n");$$ = $3;$3->typet = $1->typet;printf("ALKI\n");}
+InitializeStmt : var EQT INITIALIZE '(' ')'  {$$ = makeOperationNode("initialize", $1, 21);}
+
+FIELD   : ID '.' ID                       {$$ = $3;$3->typet = $1->typet;}
         | FIELD '.' ID                    {$$ = $3;$3->typet = $1->typet;}
         ; 
 
-var: ID                                     {$$ =$1;printf("..%s\n", $1->varname);}
+var: ID                                     {$$ =$1;}
    | var '[' expr ']'                        {$$ = makeArrayNode($1->varname, $3 , 12);}
    | var '[' var ']'                         {$$ = makeArrayNode($1->varname, $3 , 12);}
    ;
@@ -290,7 +294,7 @@ expr  : expr PLUS expr                {$$ = makeOperatorNode("+", $1, $3, 3);}
     | var EQT string                {$$ = makeOperatorNode("=", $1, $3, 3);}
     | ID '(' ')'                    {$$ = makeFuncCallNode($1, NULL, 15);}
     | ID '(' ArgList ')'            {check($1->Gentry->paramlist, $3);$$ = makeFuncCallNode($1, $3, 15);makeANull();}
-    | FIELD                         {$$ = $1;printf("AAQI\n");}
+    | FIELD                         {$$ = $1;}
     | NUL                           {$$ = $1;}
     ;
 

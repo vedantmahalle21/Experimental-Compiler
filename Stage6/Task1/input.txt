@@ -21,11 +21,11 @@ bst insert(bst h, int key)
     if (h == null) then
     h = alloc();
     h.a = key;
-    h.left = null;
+    h.left.a = key;
     h.right = null;
     else if (key < h.a) then
             h.left  = insert(h.left, key);
-         else if (key > h.a) then
+          else if (key > h.a) then
                  h.right = insert(h.right, key);
               endif;
           endif;

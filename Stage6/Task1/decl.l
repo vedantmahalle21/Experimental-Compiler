@@ -16,6 +16,9 @@
 	int flag5 = 0;
 	struct Paramstruct *temp_param = NULL;
 	struct TypeTable *temp_table = NULL;
+	struct TypeTable *temp_table1 = NULL;
+	struct Gsymbol *temp_one = NULL;
+	struct GLsymbol *temp_one1 = NULL;
 	int rettype =0;
 
 %}
@@ -41,9 +44,11 @@
 "write"								{return WRITE;}
 "if"								{return IF;}
 "alloc"								{return ALLOC;}
+"free"								{return FREE;}
+"initialize"						{return INITIALIZE;}
 \".*\"     							{char* name = yytext; yylval.n2 = makeLeafNodeStr(name, 11); return STRING;}
 "int"								{printf("int\n");if(f8 ==1){f9 =1;return INT;}else if(f2 ==1){f3 = 1; flag2 = 1; return INT;}else if(f1 == 0){flag3 = 1;flag4 = 1;if(f4 ==0){flag =1;flag4 = 1;}return INT;}else if(f2 == 0){flag =1;flag1 =1;return INT;}}
-"str"								{printf("str\n");if(f8 ==1){f9 =1;return STR;}else if(f2 ==1){f3 = 1; flag2 = 2; return STR;}else if(f1 == 0){flag3 = 1;flag4 = 2;if(f4 ==0){flag =1;flag4 = 2;}return STR;}else if(f2 == 0){flag =1;flag1 =2;return STR;}}
+"str"								{printf("str\n");if(f8 ==1){f9 =2;return STR;}else if(f2 ==1){f3 = 1; flag2 = 2; return STR;}else if(f1 == 0){flag3 = 1;flag4 = 2;if(f4 ==0){flag =1;flag4 = 2;}return STR;}else if(f2 == 0){flag =1;flag1 =2;return STR;}}
 [a-zA-Z][a-zA-Z0-9]*"["[0-9]+"]"	{ 	if(f1 ==1){
 											if(flag == 1){	
 												char* name = yytext;
@@ -130,10 +135,7 @@
 										}
 									}
 [a-zA-Z][a-zA-Z0-9]*				{   char* name1 = yytext;
-										printf("%s\n", name1);
 										struct TypeTable *temp3 = TLookup(name1);
-										//temp_table = temp3;
-										printf("AQQ\n");
 										if(temp3 != NULL){
 											f11 = 1;
 											yylval.n5 = temp3;
@@ -143,7 +145,8 @@
 											else if(f1 == 0){
 												flag3 = 1;
 											}
-											printf("qqq\n");
+											temp_table1 = temp3;
+											printf("%s\n", name1);
 											return ID4;
 										}
 										if(flag5 == 1 && f8 == 0){
@@ -164,8 +167,20 @@
 											if(f9 == 1){
 												struct FieldList *temp1 = FLookup(name1);
 												if(temp1 == NULL){
-													yylval.n6 = newField(name1);
-													printf("AA\n");
+													struct TypeTable *temp2 = TLookup("int");
+													yylval.n6 = newField(name1, temp2);
+													return ID5;
+												}
+												else{
+													printf("Dec error9\n");
+													exit(-1);
+												}
+											}
+											else if(f9 == 2){
+												struct FieldList *temp1 = FLookup(name1);
+												if(temp1 == NULL){
+													struct TypeTable *temp2 = TLookup("str");
+													yylval.n6 = newField(name1, temp2);
 													return ID5;
 												}
 												else{
@@ -174,38 +189,22 @@
 												}
 											}
 											else{
-												if(f10 == 0){
-													struct TypeTable *temp = TLookup(name1);
-													if(temp != NULL){
-														yylval.n5 = temp;
-														f10 =1;
-														f11 =0;
-														return ID4;
-													}
-													else{
-														printf("Not Declared\n");
-														exit(-1);
-													}
+												struct FieldList *temp = FLookup(name1);
+												if(temp == NULL){
+													yylval.n6 = newField(name1, temp_table1);
+													f10 = 0;
+													return ID5;
 												}
 												else{
-													struct FieldList *temp = FLookup(name1);
-													if(temp == NULL){
-														yylval.n6 = newField(name1);
-														f10 = 0;
-														return ID5;
-													}
-													else{
-														printf("Dec error9\n");
-														exit(-1);
-													}
+													printf("Dec error9\n");
+													exit(-1);
 												}
-											}
+											}											
 										}
 										else if(f3 == 1){
 											char* name1 = yytext;
 											struct Paramstruct* param = LookupParam(name1, head1);
 											if(param == NULL){
-												printf("qas\n");
 												if(flag2 == 1){ 
 													yylval.n1 = newParam(name1, 1);
 													flag2 =0;
@@ -227,20 +226,19 @@
 											char* name1 = yytext;
 											struct Lsymbol *temp = LookupLocal(name1);
 											if(temp == NULL){
-												printf("qds\n");
 												if(flag4 == 1)
 												{
-													yylval.n3 = newLVariable(name1, 1);
+													yylval.n3 = newLVariable(name1,NULL, 1);
 													return ID3;
 												}
 												else if(flag4 == 2)
 												{
-													yylval.n3 = newLVariable(name1, 2);
+													yylval.n3 = newLVariable(name1,NULL, 2);
 													return ID3;
 												}
 												else if(f11 == 1)
 												{
-													yylval.n3 = newLVariable(name1, 3);
+													yylval.n3 = newLVariable(name1,temp_table1, 3);
 													return ID3;
 												}
 											}
@@ -259,28 +257,24 @@
 											else{
 												struct Lsymbol *temp = LookupLocal(name1);
 												if(temp == NULL){
-													printf("qfs\n");
-													if(flag4 == 1){ 
+													if(f11 == 1)
+													{
+														newLVariableG(name1, param->typet, 3);
+														yylval.n1 = param;
+														f11 = 0;
+														return PARAM;
+													}
+													else if(flag4 == 1){ 
 														newLVariableG(name1, NULL, 1);
 														yylval.n1 = param;
 														flag4 =0;
 														return PARAM;
-														
 													}
 													else if(flag4 == 2){
 														newLVariableG(name1, NULL, 2);
 														yylval.n1 = param;
 														flag4 = 0;
-														return PARAM;
-														
-													}
-													else if(f11 == 1)
-													{
-														newLVariableG(name1, param->typet, 3);
-														yylval.n1 = param;
-														f11 = 0;
-														printf("Naa\n");
-														return PARAM;
+														return PARAM;	
 													}
 												}
 												else{
@@ -294,20 +288,22 @@
 											struct Lsymbol* temp2;
 											struct Gsymbol* temp1;
 											if(f12 == 0){
-												printf("qis\n");
+												printf("%s\n", yytext);
 												temp2 = LookupLocal(name1);
 												if(temp2 != NULL){
 													if(temp2->type == 3){
 														struct TypeTable *temp = temp2->typet;
-														yylval.n2 = makeLeafNodeVarL(name1, temp2,temp, 19);
+														yylval.n2 = makeLeafNodeVarL(name1, temp2,temp,3, 19);
 														temp_table = temp;
-														printf("aaq\n");
 														printf("%s\n", temp_table->name);
 														return ID;
 													}
-													else{
-														yylval.n2 = makeLeafNodeVarL(name1, temp2,NULL, 5);
-														printf("ASP\n");
+													else if(temp2->type == 1){
+														yylval.n2 = makeLeafNodeVarL(name1, temp2,NULL,1, 5);
+														return ID;
+													}
+													else if(temp2->type == 2){
+														yylval.n2 = makeLeafNodeVarL(name1, temp2,NULL,2, 5);
 														return ID;
 													}
 												}
@@ -316,11 +312,16 @@
 													if(temp1->type  == 3){
 														struct TypeTable *temp = temp1->typet;
 														temp_table = temp;
-														yylval.n2 = makeLeafNodeVarG(name1, temp1,temp, 19);
+														printf("%s\n", temp_table->name);
+														yylval.n2 = makeLeafNodeVarG(name1, temp1,temp,3, 19);
 														return ID;
 													}
-													else{
-														yylval.n2 = makeLeafNodeVarG(name1, temp1,NULL, 5);
+													else if(temp1->type == 1){
+														yylval.n2 = makeLeafNodeVarG(name1, temp1,NULL,1, 5);
+														return ID;
+													}
+													else if(temp1->type == 2){
+														yylval.n2 = makeLeafNodeVarG(name1, temp1,NULL,2, 5);
 														return ID;
 													}
 												}
@@ -330,24 +331,49 @@
 												}
 											}
 											else{
-												printf("qbs\n");
+												printf("%s\n", name1);
 												struct FieldList* temp3 = LookupF(temp_table, name1);
-												printf("aal\n");
-												if(temp1 != NULL){
+												if(temp3 != NULL){
 													struct TypeTable *temp = temp3->typet;
 													temp_table = temp;
 													f12 =0;
 													if(temp2 != NULL){
-														yylval.n2 = makeLeafNodeVarL(name1, temp2,temp, 20);
-														return ID;
+														if(temp->name == "int"){
+															printf("%s\n", temp_table->name);
+															yylval.n2 = makeLeafNodeVarL(name1, temp2,temp,1, 20);
+															return ID;
+														}
+														else if(temp->name == "str"){
+															printf("%s\n", temp_table->name);
+															yylval.n2 = makeLeafNodeVarL(name1, temp2,temp,2, 20);
+															return ID;
+														}
+														else{
+															printf("%s\n", temp_table->name);
+															yylval.n2 = makeLeafNodeVarL(name1, temp2,temp,3, 20);
+															return ID;
+														}
 													}
 													else{
-														yylval.n2 = makeLeafNodeVarG(name1, temp1,temp, 20);
-														return ID;
+														if(temp->name == "int"){
+															printf("%s\n", temp_table->name);
+															yylval.n2 = makeLeafNodeVarG(name1, temp1,temp,1, 20);
+															return ID;
+														}
+														else if(temp->name == "str"){
+															printf("%s\n", temp_table->name);
+															yylval.n2 = makeLeafNodeVarG(name1, temp1,temp,2, 20);
+															return ID;
+														}
+														else{
+															printf("%s\n", temp_table->name);
+															yylval.n2 = makeLeafNodeVarG(name1, temp1,temp,3, 20);
+															return ID;
+														}
 													}
 												}
 												else{
-													printf("Dec error3\n");
+													printf("Dec error31\n");
 													exit(-1);
 												}
 											}
@@ -381,20 +407,19 @@
 												char* name1 = yytext;
 												struct Gsymbol* temp1 = Lookup(name1);
 												if(temp1 == NULL){
-													printf("qtts\n");
 													if(flag1 == 1)
 													{ 
-														yylval.no = newVariable(name1, 1);
+														yylval.no = newVariable(name1,NULL, 1);
 														return ID1;
 													}
 													else if(flag1 == 2)
 													{
-														yylval.no = newVariable(name1, 2);
+														yylval.no = newVariable(name1,NULL, 2);
 														return ID1;
 													}
 													else if(f11 == 1)
 													{
-														yylval.no = newVariable(name1, 3);
+														yylval.no = newVariable(name1,temp_table1, 3);
 														f11 = 0;
 														return ID1;
 													}
@@ -408,9 +433,9 @@
 									}
 "["									{if(f1 == 0){return *yytext;}}
 "]"									{if(f1 == 0){return *yytext;}}
-[(]									{printf("zsd\n");if(flag3 ==0){f2 = 1;}else if(f5 == 0 && f7 ==0){f4 = 1;printf("LLK\n");}return *yytext;}
-[)]									{printf("des\n");if(flag3 ==0){f2 = 0;f3 =0;}else if(f5 == 0 && f7 ==0){f4 = 0;printf("NJJ\n");}makeNull();return *yytext;}
-[;]									{flag1 = 0; flag = 0;f3= 0; f2 = 0; f11 =0;printf("QQ\n");}
+[(]									{if(flag3 ==0){f2 = 1;}else if(f5 == 0 && f7 ==0){f4 = 1;}return *yytext;}
+[)]									{if(flag3 ==0){f2 = 0;f3 =0;}else if(f5 == 0 && f7 ==0){f4 = 0;}makeNull();return *yytext;}
+[;]									{flag1 = 0; flag = 0;f3= 0; f2 = 0; f11 =0;f9=0;flag4 =0;}
 [,]									{return *yytext;}
 [" "]								{}
 ["\n"]								{}
@@ -420,7 +445,7 @@
 "*"         						{return MUL;}
 "%"									{return MOD;}
 "/"         						{return DIV;}
-"="									{printf("KJU\n");return EQT;}
+"="									{return EQT;}
 ">"									{return GT;}
 "<"									{return LT;}
 "=="								{return EQ;}
@@ -432,7 +457,7 @@
 [0-9]+ 								{number = atoi(yytext); yylval.n2 = makeLeafNodeInt(number, 4); return ID;}
 [{]									{if(flag5 == 1){f8 = 1;}return *yytext;}
 [}]									{if(flag5 == 1){f8 = 0;}flag3 = 0;return *yytext;}
-"."									{printf("NBAA\n");f12 =1;return *yytext;}
+"."									{f12 =1;return *yytext;}
 .           						{yyerror("unknown character\n");exit(1);}
 
 

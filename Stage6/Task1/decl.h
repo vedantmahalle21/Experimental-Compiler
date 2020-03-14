@@ -66,7 +66,7 @@ typedef struct ArgStruct
 	struct ArgStruct *next;
 }ArgStruct;
 
-struct FieldList *newField(char* name);
+struct FieldList *newField(char* name, struct TypeTable *t);
 
 void TypeTableCreate();
 
@@ -90,7 +90,9 @@ struct Gsymbol *Lookup(char * name);
 
 struct Paramstruct *LookupParam(char* name, struct Paramstruct *t);
 
-struct Lsymbol *newLVariable(char* name, int type);
+struct Lsymbol *newLVariable(char* name, struct TypeTable *t, int type);
+
+void DisplayT(struct TypeTable *t);
 
 struct ArgStruct* CreateArg(struct ASTNode *t);
 
@@ -110,9 +112,9 @@ void makeANull();
 
 void makeFNull();
 
-struct ASTNode* makeLeafNodeVarG(char* var,struct Gsymbol *g, struct TypeTable *t, int type);
+struct ASTNode* makeLeafNodeVarG(char* var,struct Gsymbol *g, struct TypeTable *t, int nodetype, int type);
 
-struct ASTNode* makeLeafNodeVarL(char* var,struct Lsymbol *l, struct TypeTable *t, int type);
+struct ASTNode* makeLeafNodeVarL(char* var,struct Lsymbol *l, struct TypeTable *t, int nodetype, int type);
 
 struct ASTNode* makeLeafNodeStr(char* var, int type);
 
@@ -130,7 +132,7 @@ struct ASTNode* makeUnconditionalNode(char* op, int type);
 
 struct ASTNode* makeFuncNode(char* name, int nodetype, struct Gsymbol *g, int type);
 
-struct Gsymbol *newVariable(char *name, int type);
+struct Gsymbol *newVariable(char *name, struct TypeTable *t, int type);
 
 struct Gsymbol *newVariableArr(char *name,int num, int type);
 

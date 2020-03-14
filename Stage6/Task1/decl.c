@@ -120,7 +120,7 @@ struct TypeTable *newUserType(char* name)
     }
 }
 
-struct FieldList *newField(char* name)
+struct FieldList *newField(char* name, struct TypeTable *t)
 {
     struct FieldList *temp;
     temp = (struct FieldList*)malloc(sizeof(struct FieldList));
@@ -130,11 +130,11 @@ struct FieldList *newField(char* name)
     temp->fieldIndex = fi;
     fi++;
     sz++;
-    temp->typet = NULL;
+    temp->typet = t;
     if(head5 == NULL)
     {
         head5 = temp;
-        printf("Field Declaration %s\n", name1);
+        printf("Field Declaration %s with type %s\n", name1, t->name);
         return head5;
     }
     else
@@ -146,7 +146,7 @@ struct FieldList *newField(char* name)
             temp1 = temp1->next;
         }
         temp1->next = temp;
-        printf("Field Declaration %s\n", name1);
+        printf("Field Declaration %s with type %s\n", name1, t->name);
         return head5;
     }
 }
@@ -185,30 +185,42 @@ struct FieldList *LookupF(struct TypeTable *t, char *name1)
         }
         else{
             int cmp = strcmp(temp->name,name1);
-            printf("qq..%s\n", temp->name);
-            printf("%s\n", temp->typet->name);
             if(cmp != 0){
-        do
-        {
-            temp = temp->next;
-            if(temp == NULL)
-            {
-                break;
-            }
-            cmp = strcmp(temp->name,name1);
-            
-        }while(cmp != 0);
-    }
+                do
+                {
+                    temp = temp->next;
+                    if(temp == NULL)
+                    {
+                        break;
+                    }
+                    cmp = strcmp(temp->name,name1);        
+                }while(cmp != 0);
+        }
+        if(cmp == 0){
+            printf("%s\n", temp->name);
+        }
         return temp;
     }
 }
+
+void DisplayT(struct TypeTable *t)
+    {
+        printf("%s\n", t->name);
+        struct FieldList *temp = t->fields;
+        while(temp != NULL)
+        {
+            printf("%s\n", temp->name);
+            printf("%s\n", temp->typet->name);
+            temp = temp->next;
+        }
+    }
 
 int GetSize (Typetable* type)
 {
     return type->size;
 }
 
-struct Gsymbol *newVariable(char* name, int type)
+struct Gsymbol *newVariable(char* name, struct TypeTable *t, int type)
 	{
 		struct Gsymbol *temp;
     	temp = (struct Gsymbol*)malloc(sizeof(struct Gsymbol));
@@ -225,7 +237,7 @@ struct Gsymbol *newVariable(char* name, int type)
             temp->typet = temp1;
         }
         else{
-            temp->typet = NULL;
+            temp->typet = t;
         }
     	temp->size = 1;
         temp->paramlist = NULL;
@@ -236,7 +248,7 @@ struct Gsymbol *newVariable(char* name, int type)
     	if(head == NULL)
     	{
     		head = temp;
-            printf("Global Declaration %s and address %d\n", name1, adrs-1);
+            printf("Global Declaration %s and address %d and type %d\n", name1, adrs-1, type);
             return head;
     	}
     	else
@@ -248,7 +260,7 @@ struct Gsymbol *newVariable(char* name, int type)
     			temp1 = temp1->next;
     		}
     		temp1->next = temp;
-            printf("Global Declaration %s and address %d\n", name1, adrs-1);
+            printf("Global Declaration %s and address %d and type %d\n", name1, adrs-1, type);
             return temp1->next;
     	}
 	}
@@ -337,7 +349,7 @@ void Display(struct Gsymbol *t)
         }
     }
 
-struct Lsymbol *newLVariable(char* name, int type)
+struct Lsymbol *newLVariable(char* name, struct TypeTable *t, int type)
     {
         struct Lsymbol *temp;
         temp = (struct Lsymbol*)malloc(sizeof(struct Lsymbol));
@@ -357,7 +369,7 @@ struct Lsymbol *newLVariable(char* name, int type)
             temp->typet = temp1;
         }
         else{
-            temp->typet = NULL;
+            temp->typet = t;
         }
         if(head2 == NULL){
             head2 = temp;
@@ -595,7 +607,7 @@ struct ASTNode* makeNullVar(){
     temp = (struct ASTNode*)malloc(sizeof(struct ASTNode));
     temp->op = NULL;
     temp->val = 0;
-    temp->varname = NULL;
+    temp->varname = "NULL";
     temp->left = NULL;
     temp->right = NULL;
     temp->middle = NULL;
@@ -663,7 +675,7 @@ struct ASTNode* makeLeafNodeStr(char* var, int type)
     return temp;
 }
 
-struct ASTNode* makeLeafNodeVarG(char* var,struct Gsymbol *g, struct TypeTable *t, int type)
+struct ASTNode* makeLeafNodeVarG(char* var,struct Gsymbol *g, struct TypeTable *t,int nodetype, int type)
 {
     struct ASTNode *temp;
     temp = (struct ASTNode*)malloc(sizeof(struct ASTNode));
@@ -680,17 +692,12 @@ struct ASTNode* makeLeafNodeVarG(char* var,struct Gsymbol *g, struct TypeTable *
     temp->type = type;
     temp->Gentry = g;
     temp->Lentry = NULL;
-    if(g->type == 1){
-        temp->nodetype = 1;
-    }
-    else{
-        temp->nodetype = 2;
-    }
+    temp->nodetype = nodetype;
     printf("leaf node with %s\n", var);
     return temp;
 }
 
-struct ASTNode* makeLeafNodeVarL(char* var,struct Lsymbol *l,struct TypeTable *t, int type)
+struct ASTNode* makeLeafNodeVarL(char* var,struct Lsymbol *l,struct TypeTable *t, int nodetype, int type)
 {
     struct ASTNode *temp;
     temp = (struct ASTNode*)malloc(sizeof(struct ASTNode));
@@ -707,7 +714,7 @@ struct ASTNode* makeLeafNodeVarL(char* var,struct Lsymbol *l,struct TypeTable *t
     temp->type = type;
     temp->Gentry = NULL;
     temp->Lentry = l;
-    temp->nodetype = l->type;
+    temp->nodetype = nodetype;
     printf("leaf node with a %s with type %d\n", var, temp->nodetype);
     return temp;
 }
@@ -721,12 +728,12 @@ struct ASTNode* makeArrayNode(char* var, struct ASTNode *l, int type)
     struct Gsymbol* temp1 = Lookup(name1);
     if(l->type == 5){
         if(l->nodetype != 1){
-            printf("Typematch error\n");
+            printf("Typematch error1\n");
             exit(1);
         }
     }
     else if(l->type == 6){
-        printf("Typematch error\n");
+        printf("Typematch error2\n");
         exit(1);
     }
     temp->op = NULL;
@@ -833,39 +840,16 @@ struct ASTNode* makeOperationNode(char* op, struct ASTNode *l, int type)
 
 struct ASTNode* makeOperatorNode(char* op, struct ASTNode *l, struct ASTNode *r, int type)
 {
-    printf("%d\n", l->type);
-    printf("%d\n", r->type);
-    printf("%s\n", l->varname);
-    printf("%s\n", op);
-    if(*op == 'E'){
-        if(r->type != l->type && r->type == 19){
-            printf("Typematch error\n");
-            exit(1);
-        }
-    }
-    else if(l->type == 20 && r->type != 20){
-        struct FieldList *temp1 =  LookupF(l->typet, l->varname);
-        printf("%s\n", l->typet->name);
-        //printf("%s\n", r->typet->name);
-        if(temp1->typet != r->typet){
-            printf("Typematch error2\n");
-            exit(1);
-        }
-    }
-    else if(r->type == 20 && l->type != 20){
-        struct FieldList *temp1 =  LookupF(r->typet, r->varname);
-        if(temp1->typet != l->typet){
-            printf("Typematch error1\n");
-            exit(1);
-        }
-    }
-    else if(l->typet != r->typet){
-        printf("%s\n", l->typet->name);
-        printf("%s\n", r->typet->name);
-        printf("Typematch error1\n");
+    if(l->nodetype != r->nodetype){
+        printf("Typematch error3\n");
         exit(1);
     }
-    else{
+    else if(l->nodetype == 3 && r->nodetype == 3){
+        if(l->typet != r->typet && r->varname != "NULL"){
+            printf("Typematch error3\n");
+            exit(1);
+        }
+    }
     struct ASTNode *temp;
     temp = (struct ASTNode*)malloc(sizeof(struct ASTNode));
     temp->op = op;
@@ -925,7 +909,6 @@ struct ASTNode* makeOperatorNode(char* op, struct ASTNode *l, struct ASTNode *r,
     }*/
     return temp;
 }
-}
 
 struct ASTNode* makeConditionalNode(struct ASTNode *l, struct ASTNode *r, struct ASTNode *m, int type)
 {
@@ -984,6 +967,7 @@ struct ASTNode* makeFuncNode(char* name, int nodetype,struct Gsymbol *g, int typ
     temp->middle = NULL;
     temp->type = type;
     temp->Gentry = g;
+    temp->typet = NULL;
     temp->nodetype = nodetype;
     printf("Function Node with %s\n", name1);
     return temp;
@@ -1003,6 +987,12 @@ struct ASTNode* makeFuncCallNode(struct ASTNode *t, struct ArgStruct *arg, int t
     temp->type = type;
     temp->Gentry = NULL;
     temp->nodetype = t->nodetype;
+    if(t->nodetype == 3){
+        temp->typet = t->typet;
+    }
+    else{
+        temp->typet = NULL;
+    }
     printf("Function call node with %s\n", t->varname);
     return temp;
 }
