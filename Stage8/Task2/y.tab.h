@@ -162,7 +162,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 14 "decl.y" /* yacc.c:1909  */
+#line 15 "decl.y" /* yacc.c:1909  */
 
 	struct Gsymbol *no;
 	struct Paramstruct *n1;

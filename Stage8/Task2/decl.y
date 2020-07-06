@@ -9,6 +9,7 @@
     int j;
     int b = 0;
     int ma = 0;
+    int emp = 0;
 %}
 
 %union{
@@ -102,7 +103,6 @@ ClassDef      : Cname '{'DECL FieldDeclList MethodDecl ENDDECL MethodDefns '}'  
 
 Cname         :ID6 {$$ = $1;}
               | ID6 EXTENDS ID6 { $$ = $1;$$->Parentptr = $3; 
-                                  printf("With parent %s\n", $3->name);
                                   fjj = fjk[$3->Class_index];
                                   $$->Memberfield = makeCopy($3->Memberfield); 
                                   makeAdrrCopy($1->Class_index, $3->Class_index);
@@ -182,7 +182,7 @@ Type : INT  {}
      ;
 
 LDeclBlock :DECL LDeclList ENDDECL {$$= $2;}
-           | DECL ENDDECL           {}
+           | DECL ENDDECL           {emp = 1;}
            ;
 
 LDeclList : LDeclList LDecl {$$ =$2;}
@@ -207,7 +207,13 @@ FDefBlock : FDefBlock FDefList           {$$ =$1;}
 FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {
 
                                                                 $$ = $2;
-                                                                $$->Lentry = $7;
+                                                                if(emp == 0){
+                                                                  $$->Lentry = $7;
+                                                                }
+                                                                else{
+                                                                  $$->Lentry = head2;
+                                                                  emp  = 0;
+                                                                }
                                                                 $$->left = $9;
                                                                 $$->right  = $10;
                                                                 if($$->Gentry != NULL){
@@ -262,7 +268,13 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
          | ID4 ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {
                                                                 $$ = $2;
                                                                 $$->typet = $1;
-                                                                $$->Lentry = $7;
+                                                                if(emp == 0){
+                                                                  $$->Lentry = $7;
+                                                                }
+                                                                else{
+                                                                $$->Lentry = head2;
+                                                                  emp  = 0;
+                                                                }
                                                                 $$->left = $9;
                                                                 $$->right  = $10;
                                                                 if($$->Gentry != NULL){
@@ -318,7 +330,13 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
           | Type ID '(' ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {
 
                                                                 $$ = $2;
-                                                                $$->Lentry = $6;
+                                                                if(emp == 0){
+                                                                  $$->Lentry = $6;
+                                                                }
+                                                                else{
+                                                                  emp  = 0;
+                                                                  $$->Lentry = head2;
+                                                                }
                                                                 $$->left = $8;
                                                                 $$->right  = $9;
                                                                 if($$->Gentry != NULL){
@@ -371,7 +389,13 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
          | ID4 ID '(' ')' '{' LDeclBlock BEG Slist Retstmt END '}'  {
                                                                 $$ = $2;
                                                                 $$->typet = $1;
-                                                                $$->Lentry = $6;
+                                                                if(emp == 0){
+                                                                  $$->Lentry = $6;
+                                                                }
+                                                                else{
+                                                                  emp  = 0;
+                                                                  $$->Lentry = head2;
+                                                                }
                                                                 $$->left = $8;
                                                                 $$->right  = $9;
                                                                 if($$->Gentry != NULL){
@@ -456,6 +480,69 @@ FDefList  : Type ID '(' ParamList ')' '{' LDeclBlock BEG Slist Retstmt END '}'  
                                                                 $$ = $2;
                                                                 $$->Lentry = head2;
                                                                 $$->right  = $7;
+                                                                $$->left = NULL;
+                                                                if($$->Gentry != NULL){
+                                                                  $$->Gentry->flabel = fj;
+                                                                }
+                                                                if(f13 == 0){
+                                                                  printf("Function %s\n", $$->varname);
+                                                                  DisplayL($$->Lentry);
+                                                                }
+                                                                FILE *fptr = fopen("tree1.xsm", "a+");
+                                                                if(b == 0){
+                                                                fprintf(fptr, "MOV SP,ADRC\n");
+                                                                fprintf(fptr, "JMP MAIN\n");
+                                                                adr = adr + 4;
+                                                                b = 1;
+                                                                }
+                                                                fprintf(fptr, "Y%d:\n", fj);
+                                                                adrc = adr;
+                                                                fj++;
+                                                                i = CodeGen($2, fptr);
+                                                                fclose(fptr);
+                                                                makeLNull();
+                                                                }
+          | Type ID '(' ')' '{'LDeclBlock BEG Retstmt END '}'  {
+                                                                $$ = $2;
+                                                                if(emp == 0){
+                                                                }
+                                                                else{
+                                                                  $$->Lentry = head2;
+                                                                  emp = 0;
+                                                                }
+                                                                $$->right  = $8;
+                                                                $$->left = NULL;
+                                                                if($$->Gentry != NULL){
+                                                                  $$->Gentry->flabel = fj;
+                                                                }
+                                                                if(f13 == 0){
+                                                                  printf("Function %s\n", $$->varname);
+                                                                  DisplayL($$->Lentry);
+                                                                }
+                                                                FILE *fptr = fopen("tree1.xsm", "a+");
+                                                                if(b == 0){
+                                                                fprintf(fptr, "MOV SP,ADRC\n");
+                                                                fprintf(fptr, "JMP MAIN\n");
+                                                                adr = adr + 4;
+                                                                b = 1;
+                                                                }
+                                                                fprintf(fptr, "Y%d:\n", fj);
+                                                                adrc = adr;
+                                                                fj++;
+                                                                i = CodeGen($2, fptr);
+                                                                fclose(fptr);
+                                                                makeLNull();
+                                                                }
+          | ID4 ID '(' ')' '{'LDeclBlock BEG Retstmt END '}'  {
+                                                                $$ = $2;
+                                                                $$->typet = $1;
+                                                                if(emp == 0){
+                                                                }
+                                                                else{
+                                                                  $$->Lentry = head2;
+                                                                  emp = 0;
+                                                                }
+                                                                $$->right  = $8;
                                                                 $$->left = NULL;
                                                                 if($$->Gentry != NULL){
                                                                   $$->Gentry->flabel = fj;
@@ -628,7 +715,12 @@ Arg : expr                  {$$ = CreateArg($1);}
 
 
 MainBlock : INT MAIN '(' ')' '{' LDeclBlock BEG Slist Retstmt END '}'    {$$ = $2; 
-                                                                          $$->Lentry = $6; 
+                                                                          if(emp == 0){
+                                                                          $$->Lentry = $6;
+                                                                          }
+                                                                          else{
+                                                                          emp = 0;
+                                                                          }
                                                                           $$->left = $8;
                                                                           $$->right = $9;
                                                                           printf("Main Function With Local Decs\n");
